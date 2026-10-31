@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resultados Quinielas · CABA · PBA · Neuquén · Río Negro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #38bdf8;
+      --accent2: #22c55e;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: #334155;
+      --cabeza: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Archivo", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--muted); font-size: 0.9rem; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+      margin-bottom: 1.25rem;
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .field { display: flex; flex-direction: column; gap: 0.3rem; min-width: 140px; }
+    label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    select, button {
+      font: inherit;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+    select:focus, button:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    button {
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    button:hover { filter: brightness(1.08); }
+    button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #btnImprimirTermica {
+        display: none !important;
+      }
+
+    .status {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .status .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent2);
+      display: inline-block;
+    }
+    .status.error .dot { background: #ef4444; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 0.75rem 1rem;
+      background: rgba(56, 189, 248, 0.12);
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-header .turno-tag {
+      font-size: 0.7rem;
+      background: var(--bg);
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .numbers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.35rem;
+      padding: 0.85rem;
+    }
+    .num {
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 0.4rem 0.25rem;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.9rem;
+    }
+    .num .pos {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-bottom: 0.1rem;
+    }
+    .num.cabeza {
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid var(--cabeza);
+      color: var(--cabeza);
+      font-weight: 700;
+    }
+    .empty {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .loading {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 0.75rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 1.5rem 0 0.5rem;
+      border-top: 1px solid var(--border);
+      margin-top: 1rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ========== PRINT ========== */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin-top: 10mm;
+        margin-bottom: 0;
+      }
+
+      @page thermal {
+        size: 80mm 300mm;
+        margin: 3mm;
+      }
+
+      body {
+        background: #fff;
+        color: #111;
+        padding: 0;
+        font-size: 11pt;
+      }
+
+      .container {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+      }
+
+      .controls, .status, footer, .no-print { display: none !important; }
+
+      header { display: none !important; }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 0.25cm;
+        row-gap: 0.2cm;
+        align-items: start;
+        margin-bottom: 0;
+      }
+
+      .card {
+        background: #fff;
+        border: 2px solid #222;
+        border-radius: 2mm;
+        overflow: hidden;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none;
+      }
+
+      .card-header {
+        background: #fff;
+        color: #000;
+        border-bottom: 1.5px solid #222;
+        padding: 4mm 1.8mm 0mm;
+        font-size: 24pt;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        display: block;
+        text-align: center;
+        line-height: 6mm;
+      }
+
+      .card-header .turno-tag {
+        background: #fff;
+        color: #000;
+        border: 1px solid #222;
+        vertical-align: 26%;
+        font-size: 12pt;
+      }
+
+      .card-date {
+        display: block !important;
+        padding: 0.08cm 0.18cm 0;
+        color: #000;
+        font-size: 15pt;
+        font-weight: 700;
+      }
+
+      .numbers {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(10, auto);
+        grid-auto-flow: column;
+        gap: 0.06cm;
+        padding: 0.1cm 0.14cm 0.14cm;
+      }
+
+      .num {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0;
+        background: #ffffff;
+        border: 1px solid #d2d2d2;
+        color: #111;
+        font-size: 28pt;
+        font-weight: 700;
+        padding: 0.5mm 5mm 0mm 0mm;
+        border-radius: 0.1cm;
+        line-height: 9mm;
+      }
+
+      .num .pos {
+        display: inline-block;
+        color: #444;
+        font-size: 12pt;
+        min-width: 0.8cm;
+        text-align: left;
+        padding-left: 10%;
+      }
+
+      .num.cabeza {
+        background: #fff7d6;
+        border: 1.5px solid #b8860b;
+        color: #111;
+        font-weight: 700;
+      }
+
+      .print-footer {
+        display: block !important;
+        margin-top: 0.25cm;
+        padding-top: 0.15cm;
+        border-top: 2px solid #111;
+        color: #111;
+        font-size: 25pt;
+        font-weight: 800;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      body.thermal-print {
+        page: thermal;
+        width: 74mm;
+        min-height: 0;
+        font-family: Arial, sans-serif;
+        font-size: 9pt;
+        line-height: 1.2;
+      }
+
+      body.thermal-print .container {
+        width: 100%;
+      }
+
+      body.thermal-print .thermal-heading {
+        display: block;
+        margin-bottom: 2mm;
+        padding-bottom: 1.5mm;
+        border-bottom: 1px dashed #111;
+        text-align: center;
+        font-size: 12pt;
+        font-weight: 700;
+      }
+
+      body.thermal-print .grid {
+        display: block;
+      }
+
+      body.thermal-print .card {
+        margin-bottom: 2mm;
+        border: none;
+        border-bottom: 1px dashed #111;
+        border-radius: 0;
+        overflow: visible;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      body.thermal-print .card-header {
+        padding: 1mm 0;
+        border: none;
+        font-size: 10pt;
+        line-height: normal;
+      }
+
+      body.thermal-print .card-header .turno-tag,
+      body.thermal-print .card-date {
+        display: none !important;
+      }
+
+      body.thermal-print .turno-term {
+        display: block !important;
+        font-size: 9pt;
+        color: #000;
+        text-align: justify;
+        margin-bottom: 1mm;
+      }
+
+      body.thermal-print .numbers {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(10, auto);
+        grid-auto-flow: column;
+        gap: 0 2mm;
+        padding: 0;
+      }
+
+      body.thermal-print .num {
+        justify-content: space-between;
+        gap: 1mm;
+        padding: 0.5mm 1mm;
+        border: none;
+        border-radius: 0;
+        border-bottom: 1px dotted #bbb;
+        font-size: 20pt;
+      }
+
+      body.thermal-print .num .pos {
+        min-width: 7mm;
+        padding: 0;
+        font-size: 8pt;
+      }
+
+      body.thermal-print .num.cabeza {
+        border: none;
+        border-bottom: 1px dotted #777;
+        background: #fff;
+      }
+
+      body.thermal-print .print-footer {
+        display: none !important;
+      }
+    }
+    .card-date, .print-footer, .thermal-heading, .turno-term { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Resultados Quinielas</h1>
+      <p class="subtitle">Ciudad de Buenos Aires · Provincia de Buenos Aires · Neuquén · Río Negro</p>
+    </header>
+
+    <div class="controls no-print">
+      <div class="field">
+        <label for="fuente">Fuente de datos</label>
+        <select id="fuente">
+          <option value="tujugada">TuJugada</option>
+          <option value="numerosenvivo">Números en Vivo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fecha">Día</label>
+        <select id="fecha" disabled>
+          <option value="">Cargando…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="turno">Horario / Turno</label>
+        <select id="turno" disabled>
+          <option value="">Cargando…</option>
+        </select>
+      </div>
+      <button id="btnActualizar" title="Volver a cargar datos">
+        ↻ Actualizar
+      </button>
+      <button id="btnImprimir" class="secondary" disabled>
+        🖨 Imprimir / PDF
+      </button>
+      <button id="btnImprimirTermica" class="secondary" disabled>
+        🧾 Térmica 80 mm
+      </button>
+    </div>
+
+    <div class="status" id="status">
+      <span class="dot"></span>
+      <span id="statusText">Cargando datos en vivo…</span>
+    </div>
+
+    <div id="content">
+      <div class="loading">
+        <div class="spinner"></div>
+        Obteniendo últimos resultados…
+      </div>
+    </div>
+
+    <footer>
+      Datos informativos provenientes de
+      <a id="sourceLink" href="https://tujugada.com.ar" target="_blank" rel="noopener">TuJugada</a>.
+      Verificá siempre con el extracto oficial de cada lotería.
+      Esta página no es un sitio oficial de apuestas.
+    </footer>
+  </div>
+
+  <script>
+    const ENDPOINTS = {
+      ciudad: "https://tujugada.com.ar/quiniela-nacional.asp",
+      "buenos-aires": "https://tujugada.com.ar/quiniela_provincia_buenos_aires.asp",
+      neuquen: "https://tujugada.com.ar/quiniela_neuquen.asp",
+      "rio-negro": "https://tujugada.com.ar/quiniela-rio-negro.asp"
+    };
+
+    const SCRAPER_URL = "https://r.jina.ai/";
+    const NUMEROSENVIVO_API = "https://numerosenvivo.com.ar";
+    const FUENTES = {
+      tujugada: { nombre: "TuJugada", url: "https://tujugada.com.ar" },
+      numerosenvivo: { nombre: "Números en Vivo", url: NUMEROSENVIVO_API }
+    };
+    const NOMBRES = {
+      ciudad: "Ciudad",
+      "buenos-aires": "Provincia",
+      neuquen: "Neuquén",
+      "rio-negro": "Río Negro"
+    };
+
+    const ORDEN_TURNOS = ["Previa", "Primera", "Matutina", "Vespertina", "Nocturna"];
+
+    // Datos en memoria: { jurisdiccion: { fecha: { turno: [ {posicion, numero, esCabeza} ] } } }
+    let data = {};
+    let urlsHistoricas = {};
+    let fechasCargadas = {};
+    let fechasDisponibles = [];
+    let fechasApi = [];
+    let turnosPorFecha = {};
+    let fuenteActual = "tujugada";
+
+    const $ = (sel) => document.querySelector(sel);
+    const fuenteSel = $("#fuente");
+    const fechaSel = $("#fecha");
+    const turnoSel = $("#turno");
+    const content = $("#content");
+    const statusEl = $("#status");
+    const statusText = $("#statusText");
+    const btnImprimir = $("#btnImprimir");
+    const btnImprimirTermica = $("#btnImprimirTermica");
+    const btnActualizar = $("#btnActualizar");
+    const sourceLink = $("#sourceLink");
+
+    function setImpresionDeshabilitada(deshabilitada) {
+      btnImprimir.disabled = deshabilitada;
+      btnImprimirTermica.disabled = deshabilitada;
+    }
+
+    function setStatus(msg, isError = false) {
+      statusText.textContent = msg;
+      statusEl.classList.toggle("error", isError);
+    }
+
+    function fechaIsoDesdeTexto(texto) {
+      const match = texto.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+      if (!match) return null;
+      return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}`;
+    }
+
+    function extraerEncabezadoSorteo(tabla) {
+      let nodo = tabla;
+      while (nodo && nodo !== nodo.ownerDocument.body) {
+        if (nodo.tagName === "TABLE") {
+          const texto = nodo.previousElementSibling?.textContent?.replace(/\s+/g, " ").trim();
+          if (texto && fechaIsoDesdeTexto(texto)) {
+            const turno = texto.match(/\b(la previa|previa|el primero|primera|matutina|vespertina|nocturna)\b/i);
+            if (turno) return { fecha: fechaIsoDesdeTexto(texto), turno: normalizarTurno(turno[0]) };
+          }
+        }
+        nodo = nodo.parentElement;
+      }
+      return null;
+    }
+
+    function valorNumericoCelda(celda, maxDigitos) {
+      return Array.from(celda.querySelectorAll("font"))
+        .map((font) => font.textContent.trim())
+        .find((valor) => new RegExp(`^\\d{1,${maxDigitos}}$`).test(valor));
+    }
+
+    function fechaDesdeUrlHistorica(url) {
+      const sorteo = new URL(url).searchParams.get("sorteo");
+      const match = sorteo?.match(/^(\d{2})(\d{2})(\d{4})$/);
+      return match ? `${match[3]}-${match[2]}-${match[1]}` : null;
+    }
+
+    async function obtenerPaginaScrapeada(url) {
+      const res = await fetch(`${SCRAPER_URL}${url}`, {
+        cache: "no-store",
+        headers: {
+          "X-Return-Format": "html",
+          "X-Engine": "playwright",
+          "X-Target-Selector": "#qp"
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status} al consultar TuJugada`);
+      return new DOMParser().parseFromString(await res.text(), "text/html");
+    }
+
+    async function obtenerJsonNumerosEnVivo(ruta) {
+      const url = `${SCRAPER_URL}${NUMEROSENVIVO_API}${ruta}`;
+      const res = await fetch(url, {
+        cache: "no-store",
+        headers: { "Accept": "application/json" }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status} al consultar Números en Vivo`);
+
+      const respuesta = await res.json();
+      const contenido = respuesta?.data?.content;
+      if (typeof contenido !== "string") {
+        throw new Error("La respuesta de Números en Vivo no contiene datos JSON");
+      }
+      try {
+        return JSON.parse(contenido);
+      } catch (err) {
+        throw new Error("No se pudieron interpretar los datos de Números en Vivo");
+      }
+    }
+
+    async function cargarFechasNumerosEnVivo() {
+      const resultado = await obtenerJsonNumerosEnVivo("/api/historico/fechas");
+      if (!Array.isArray(resultado.fechas)) {
+        throw new Error("La API de Números en Vivo no devolvió una lista de fechas");
+      }
+      fechasApi = resultado.fechas.filter((fecha) => /^\d{4}-\d{2}-\d{2}$/.test(fecha)).sort().reverse();
+      fechasDisponibles = fechasApi.slice();
+    }
+
+    async function cargarFechaNumerosEnVivo(fecha) {
+      const resultado = await obtenerJsonNumerosEnVivo(`/api/quinielas?fecha=${encodeURIComponent(fecha)}`);
+      if (!Array.isArray(resultado.provincias)) {
+        throw new Error("La API de Números en Vivo no devolvió resultados válidos");
+      }
+
+      for (const slug of Object.keys(NOMBRES)) {
+        const provincia = resultado.provincias.find((item) => item.slug === slug);
+        const turnos = {};
+        for (const [turno, sorteo] of Object.entries(provincia?.turnos || {})) {
+          if (!Array.isArray(sorteo.numeros)) continue;
+          const numeros = sorteo.numeros
+            .map((numero, indice) => {
+              const valor = String(numero).trim();
+              if (!/^\d{1,4}$/.test(valor)) return null;
+              return {
+                posicion: indice + 1,
+                numero: valor.padStart(4, "0"),
+                esCabeza: indice === 0
+              };
+            })
+            .filter(Boolean);
+          if (numeros.length > 0) turnos[normalizarTurno(turno)] = numeros;
+        }
+        data[slug] = data[slug] || {};
+        data[slug][fecha] = turnos;
+        if (!fechasCargadas[slug]) fechasCargadas[slug] = new Set();
+        fechasCargadas[slug].add(fecha);
+      }
+      recolectarFechasYTurnos();
+    }
+
+    function procesarPagina(doc, slug, url) {
+      const byFecha = {};
+      const tablas = Array.from(doc.querySelectorAll("table")).filter((tabla) =>
+        tabla.rows.length === 11 && /ubic/i.test(tabla.rows[0].textContent) && /numero/i.test(tabla.rows[0].textContent)
+      );
+      let sorteosEncontrados = 0;
+
+      for (const tabla of tablas) {
+        const encabezado = extraerEncabezadoSorteo(tabla);
+        if (!encabezado) continue;
+        const numeros = [];
+
+        for (let fila = 1; fila < tabla.rows.length; fila++) {
+          const celdas = Array.from(tabla.rows[fila].cells);
+          for (const [indicePosicion, indiceNumero] of [[0, 1], [2, 3]]) {
+            const posicionTexto = valorNumericoCelda(celdas[indicePosicion], 2);
+            const numero = valorNumericoCelda(celdas[indiceNumero], 4);
+            if (!posicionTexto || !numero) continue;
+            const posicion = Number(posicionTexto);
+            if (posicion < 1 || posicion > 20) continue;
+            numeros.push({
+              posicion,
+              numero: numero.padStart(4, "0"),
+              esCabeza: posicion === 1
+            });
+          }
+        }
+
+        if (numeros.length === 0) continue;
+        numeros.sort((a, b) => a.posicion - b.posicion);
+        if (!byFecha[encabezado.fecha]) byFecha[encabezado.fecha] = {};
+        byFecha[encabezado.fecha][encabezado.turno] = numeros;
+        sorteosEncontrados++;
+      }
+
+      if (tablas.length > 0 && sorteosEncontrados === 0) {
+        throw new Error(`No se pudieron interpretar los sorteos de ${NOMBRES[slug]} en TuJugada`);
+      }
+
+      const archivos = [];
+      for (const enlace of doc.querySelectorAll("a[href*='sorteo=']")) {
+        const destino = new URL(enlace.href, url);
+        if (!/(^|\.)tujugada\.com\.ar$/i.test(destino.hostname)) continue;
+        const fecha = fechaDesdeUrlHistorica(destino.href);
+        if (fecha) archivos.push({ fecha, url: destino.href });
+      }
+      return { byFecha, archivos };
+    }
+
+    function normalizarTurno(t) {
+      const s = String(t).trim();
+      const map = {
+        "la previa": "Previa", previa: "Previa",
+        "el primero": "Primera", primera: "Primera",
+        matutina: "Matutina",
+        vespertina: "Vespertina",
+        nocturna: "Nocturna"
+      };
+      return map[s.toLowerCase()] || s;
+    }
+
+    function recolectarFechasYTurnos() {
+      const setFechas = new Set();
+      turnosPorFecha = {};
+      for (const slug of Object.keys(data)) {
+        for (const f of Object.keys(data[slug])) {
+          setFechas.add(f);
+          if (!turnosPorFecha[f]) turnosPorFecha[f] = new Set();
+          for (const t of Object.keys(data[slug][f])) {
+            turnosPorFecha[f].add(t);
+          }
+        }
+      }
+      for (const f of Object.keys(urlsHistoricas)) setFechas.add(f);
+      fechasDisponibles = fuenteActual === "numerosenvivo"
+        ? fechasApi.slice()
+        : Array.from(setFechas).sort().reverse();
+      for (const f of Object.keys(turnosPorFecha)) {
+        turnosPorFecha[f] = Array.from(turnosPorFecha[f]).sort(
+          (a, b) => ORDEN_TURNOS.indexOf(a) - ORDEN_TURNOS.indexOf(b)
+        );
+      }
+    }
+
+    function poblarSelects() {
+      fechaSel.innerHTML = "";
+      if (fechasDisponibles.length === 0) {
+        fechaSel.innerHTML = '<option value="">Sin fechas</option>';
+        fechaSel.disabled = true;
+        turnoSel.disabled = true;
+        setImpresionDeshabilitada(true);
+        return;
+      }
+      for (const f of fechasDisponibles) {
+        const opt = document.createElement("option");
+        opt.value = f;
+        opt.textContent = formatearFecha(f);
+        fechaSel.appendChild(opt);
+      }
+      fechaSel.disabled = false;
+      fechaSel.value = fechasDisponibles[0];
+    }
+
+    function tieneFechaCargada(fecha, slug) {
+      return fechasCargadas[slug]?.has(fecha) || false;
+    }
+
+    async function cargarFechaHistorica(fecha) {
+      if (fuenteActual === "numerosenvivo") {
+        await cargarFechaNumerosEnVivo(fecha);
+        return;
+      }
+      const fechaCompacta = `${fecha.slice(8, 10)}${fecha.slice(5, 7)}${fecha.slice(0, 4)}`;
+      const pendientes = Object.entries(ENDPOINTS).filter(([slug]) => !tieneFechaCargada(fecha, slug));
+      await Promise.all(pendientes.map(async ([slug, baseUrl]) => {
+        const url = urlsHistoricas[fecha]?.[slug] || `${baseUrl}?sorteo=${fechaCompacta}`;
+        const doc = await obtenerPaginaScrapeada(url);
+        const resultado = procesarPagina(doc, slug, url);
+        data[slug] = data[slug] || {};
+        Object.assign(data[slug], resultado.byFecha);
+        if (!fechasCargadas[slug]) fechasCargadas[slug] = new Set();
+        fechasCargadas[slug].add(fecha);
+        for (const archivo of resultado.archivos) {
+          if (!urlsHistoricas[archivo.fecha]) urlsHistoricas[archivo.fecha] = {};
+          urlsHistoricas[archivo.fecha][slug] = archivo.url;
+        }
+      }));
+      recolectarFechasYTurnos();
+    }
+
+    async function actualizarTurnos() {
+      const f = fechaSel.value;
+      turnoSel.innerHTML = "";
+      setImpresionDeshabilitada(true);
+      if (!f) return;
+
+      const necesitaCarga = Object.keys(NOMBRES).some((slug) => !tieneFechaCargada(f, slug));
+      if (necesitaCarga) {
+        const fuenteEstabaDeshabilitada = fuenteSel.disabled;
+        fuenteSel.disabled = true;
+        fechaSel.disabled = true;
+        btnActualizar.disabled = true;
+        turnoSel.disabled = true;
+        content.innerHTML = `<div class="loading"><div class="spinner"></div>Obteniendo resultados de ${formatearFecha(f)}…</div>`;
+        setStatus(`Buscando resultados del ${formatearFecha(f)} en ${FUENTES[fuenteActual].nombre}…`);
+        try {
+          await cargarFechaHistorica(f);
+        } catch (err) {
+          console.error(err);
+          setStatus("Error al cargar los resultados de la fecha seleccionada.", true);
+          content.innerHTML = `<div class="empty">No se pudieron obtener los resultados.<br><small>${err.message}</small></div>`;
+          return;
+        } finally {
+          fechaSel.disabled = false;
+          btnActualizar.disabled = false;
+          fuenteSel.disabled = fuenteEstabaDeshabilitada;
+        }
+      }
+
+      const turnos = turnosPorFecha[f] || [];
+      if (turnos.length === 0) {
+        turnoSel.innerHTML = '<option value="">Sin turnos</option>';
+        turnoSel.disabled = true;
+        content.innerHTML = '<div class="empty">No hay resultados para esta fecha.</div>';
+        setStatus(`Sin resultados para ${formatearFecha(f)} · Fuente: ${FUENTES[fuenteActual].nombre}`);
+        return;
+      }
+      for (const t of turnos) {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        turnoSel.appendChild(opt);
+      }
+      // Preferir el turno más reciente del día (último del orden)
+      turnoSel.value = turnos[turnos.length - 1];
+      turnoSel.disabled = false;
+      setImpresionDeshabilitada(false);
+      render();
+      setStatus(`Resultados del ${formatearFecha(f)} · Fuente: ${FUENTES[fuenteActual].nombre}`);
+    }
+
+    function formatearFecha(iso) {
+      const [y, m, d] = iso.split("-");
+      const meses = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+      const date = new Date(Number(y), Number(m) - 1, Number(d));
+      const dias = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+      return `${dias[date.getDay()]} ${d}/${m}/${y}`;
+    }
+
+    function render() {
+      const f = fechaSel.value;
+      const t = turnoSel.value;
+      if (!f || !t) return;
+
+      let html = '<div class="grid">';
+      let alguno = false;
+
+      html += `<div class="thermal-heading">Quinielas · ${t}<br>${formatearFecha(f)}</div>`;
+      for (const slug of ["ciudad", "buenos-aires", "neuquen", "rio-negro"]) {
+        const nums = data[slug]?.[f]?.[t];
+        html += `<div class="card">
+          <div class="card-header">
+            <span class="turno-term">${t}</span>
+            <span>${NOMBRES[slug]}</span>
+            <span class="turno-tag">${t}</span>
+            <div class="card-date">${formatearFecha(f)}</div>
+          </div>`;
+        if (!nums || nums.length === 0) {
+          html += `<div class="empty">Sin datos para este turno</div>`;
+        } else {
+          alguno = true;
+          html += `<div class="numbers">`;
+          for (const n of nums) {
+            const cls = n.esCabeza || n.posicion === 1 ? "num cabeza" : "num";
+            html += `<div class="${cls}">
+              <span class="pos">${n.posicion}º</span>
+              ${n.numero}
+            </div>`;
+          }
+          html += `</div>`;
+        }
+        html += `</div>`;
+      }
+      html += `</div><div class="print-footer">${t} · ${formatearFecha(f)}</div>`;
+
+      if (!alguno) {
+        content.innerHTML = '<div class="empty">No se encontraron extractos para la combinación seleccionada.</div>';
+      } else {
+        content.innerHTML = html;
+      }
+    }
+
+    async function cargarTodo() {
+      const fuente = FUENTES[fuenteActual];
+      sourceLink.textContent = fuente.nombre;
+      sourceLink.href = fuente.url;
+      setStatus(`Cargando datos en vivo desde ${fuente.nombre}…`);
+      content.innerHTML = `<div class="loading"><div class="spinner"></div>Obteniendo últimos resultados…</div>`;
+      fuenteSel.disabled = true;
+      fechaSel.disabled = true;
+      turnoSel.disabled = true;
+      setImpresionDeshabilitada(true);
+      btnActualizar.disabled = true;
+      data = {};
+      urlsHistoricas = {};
+      fechasCargadas = {};
+      fechasApi = [];
+
+      try {
+        if (fuenteActual === "numerosenvivo") {
+          await cargarFechasNumerosEnVivo();
+        } else {
+          const promesas = Object.entries(ENDPOINTS).map(async ([slug, url]) => {
+            const doc = await obtenerPaginaScrapeada(url);
+            const resultado = procesarPagina(doc, slug, url);
+            data[slug] = resultado.byFecha;
+            const ultimaFechaCompleta = Object.keys(resultado.byFecha).sort().reverse()[0];
+            fechasCargadas[slug] = new Set(ultimaFechaCompleta ? [ultimaFechaCompleta] : []);
+            for (const archivo of resultado.archivos) {
+              if (!urlsHistoricas[archivo.fecha]) urlsHistoricas[archivo.fecha] = {};
+              urlsHistoricas[archivo.fecha][slug] = archivo.url;
+            }
+          });
+          await Promise.all(promesas);
+          recolectarFechasYTurnos();
+        }
+        poblarSelects();
+        const ultima = fechasDisponibles[0];
+        if (ultima) {
+          await actualizarTurnos();
+          setStatus(`Actualizado · Última fecha disponible: ${formatearFecha(ultima)} · Fuente: ${fuente.nombre}`);
+        } else {
+          setStatus(`${fuente.nombre} no publicó resultados para las fechas disponibles.`, true);
+          content.innerHTML = '<div class="empty">No se encontraron resultados para mostrar.</div>';
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus("Error al cargar datos. Verificá tu conexión o intentá de nuevo.", true);
+        content.innerHTML = `<div class="empty">No se pudieron obtener los resultados.<br><small>${err.message}</small></div>`;
+      } finally {
+        btnActualizar.disabled = false;
+        fuenteSel.disabled = false;
+      }
+    }
+
+    fuenteSel.addEventListener("change", () => {
+      fuenteActual = fuenteSel.value;
+      cargarTodo();
+    });
+    fechaSel.addEventListener("change", actualizarTurnos);
+    turnoSel.addEventListener("change", render);
+    btnImprimir.addEventListener("click", () => window.print());
+    btnImprimirTermica.addEventListener("click", () => {
+      document.body.classList.add("thermal-print");
+      window.print();
+    });
+    window.addEventListener("afterprint", () => document.body.classList.remove("thermal-print"));
+    btnActualizar.addEventListener("click", cargarTodo);
+
+    // Carga inicial
+    cargarTodo();
+  </script>
+</body>
+</html>
